@@ -1,0 +1,29 @@
+{
+  "name": "cantina",
+  "version": "1.0.0",
+  "description": "API Cantina Escolar — Controle de Contas de Alunos",
+  "main": "index.js",
+  "scripts": {
+    "dev": "npx tsx watch src/server.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@prisma/adapter-mariadb": "^7.5.0",
+    "@prisma/client": "^6.19.3",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "nodemailer": "^7.0.3",
+    "prisma": "^6.19.3",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.5.0",
+    "@types/nodemailer": "^6.4.17",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}
