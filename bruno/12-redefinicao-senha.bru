@@ -1,0 +1,23 @@
+meta {
+  name: 12 Redefinicao senha
+  type: http
+  seq: 12
+}
+
+post {
+  url: {{baseUrl}}/redefinir-senha
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "email": "admin@cantina.com",
+    "codigo": "123456",
+    "novaSenha": "NovaSenha@123"
+  }
+}

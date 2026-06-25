@@ -1,0 +1,22 @@
+meta {
+  name: 05 Login invalido
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/login
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "email": "admin@cantina.com",
+    "senha": "SenhaErrada@123"
+  }
+}

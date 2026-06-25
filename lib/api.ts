@@ -16,7 +16,6 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   return res.json()
 }
 
-// ── Alunos ──────────────────────────────────────────────────
 export const getAlunos = () => request<Aluno[]>("/alunos")
 
 export const getAluno = (id: number) => request<Aluno>(`/alunos/${id}`)
@@ -30,20 +29,17 @@ export const updateAluno = (id: number, data: Omit<Aluno, "id" | "saldo">) =>
 export const deleteAluno = (id: number) =>
   request<Aluno>(`/alunos/${id}`, { method: "DELETE" })
 
-// ── Produtos ─────────────────────────────────────────────────
 export const getProdutos = () => request<Produto[]>("/produtos")
 
 export const createProduto = (data: Omit<Produto, "id">) =>
   request<Produto>("/produtos", { method: "POST", body: JSON.stringify(data) })
 
-// ── Depósitos ────────────────────────────────────────────────
 export const createDeposito = (data: {
   alunoId: number
   valor: number
   tipo: "PIX" | "Cartao" | "Dinheiro"
 }) => request("/depositos", { method: "POST", body: JSON.stringify(data) })
 
-// ── Vendas ───────────────────────────────────────────────────
 export const createVenda = (data: {
   alunoId: number
   produtoId: number

@@ -1,0 +1,23 @@
+meta {
+  name: 10 Rota sem token
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{baseUrl}}/depositos
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "alunoId": 1,
+    "valor": 10,
+    "tipo": "PIX"
+  }
+}

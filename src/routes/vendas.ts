@@ -1,5 +1,7 @@
 import { prisma } from "../../lib/prisma";
 import { Router } from "express";
+import { authMiddleware, requireRole } from "../middleware/auth";
+import { registrarLog } from "../utils/security";
 import { z } from "zod";
 
 const router = Router();
@@ -16,18 +18,22 @@ router.get("/", async (req, res) => {
       include: {
         aluno: { select: { nome: true } },
         produto: { select: { nome: true } },
+        usuario: { select: { nome: true, email: true, nivel: true } },
       },
+      orderBy: { data: "desc" },
     });
+
     res.status(200).json(vendas);
-  } catch (error) {
+  } catch {
     res.status(500).json({ erro: "Erro no servidor" });
   }
 });
 
 router.get("/:id", async (req, res) => {
   const id = Number(req.params.id);
+
   if (isNaN(id)) {
-    res.status(400).json({ erro: "ID inválido" });
+    res.status(400).json({ erro: "ID invalido" });
     return;
   }
 
@@ -37,69 +43,69 @@ router.get("/:id", async (req, res) => {
       include: {
         aluno: { select: { nome: true } },
         produto: { select: { nome: true } },
+        usuario: { select: { nome: true, email: true, nivel: true } },
       },
     });
+
     if (!venda) {
-      res.status(404).json({ erro: "Venda não encontrada" });
+      res.status(404).json({ erro: "Venda nao encontrada" });
       return;
     }
+
     res.status(200).json(venda);
-  } catch (error) {
+  } catch {
     res.status(500).json({ erro: "Erro no servidor" });
   }
 });
 
-// POST /vendas — registra venda com TRANSAÇÃO
-// Valida saldo e estoque ANTES de gravar
-router.post("/", async (req, res) => {
+router.post("/", authMiddleware, requireRole("GERENTE"), async (req, res) => {
   const valida = vendaSchema.safeParse(req.body);
+
   if (!valida.success) {
     res.status(400).json({ erro: valida.error.issues });
     return;
   }
 
   const { alunoId, produtoId, quant } = valida.data;
+  const usuarioId = (req as any).user.id;
 
   try {
-    // Busca aluno e produto em paralelo para verificar saldo e estoque
     const [aluno, produto] = await Promise.all([
       prisma.aluno.findUnique({ where: { id: alunoId } }),
-      prisma.produto.findUnique({ where: { id: produtoId } }),
+      prisma.produto.findFirst({ where: { id: produtoId, deleted: false } }),
     ]);
 
     if (!aluno) {
-      res.status(404).json({ erro: "Aluno não encontrado" });
-      return;
-    }
-    if (!produto) {
-      res.status(404).json({ erro: "Produto não encontrado" });
+      res.status(404).json({ erro: "Aluno nao encontrado" });
       return;
     }
 
-    // Calcula o total da venda (quant * preço do produto)
+    if (!produto) {
+      res.status(404).json({ erro: "Produto nao encontrado" });
+      return;
+    }
+
     const totalVenda = produto.preco.toNumber() * quant;
 
-    // Verifica se há estoque suficiente
     if (produto.quant < quant) {
       res.status(400).json({
-        erro: `Estoque insuficiente. Disponível: ${produto.quant}`,
+        erro: `Estoque insuficiente. Disponivel: ${produto.quant}`,
       });
       return;
     }
 
-    // Verifica se o aluno tem saldo suficiente
     if (aluno.saldo.toNumber() < totalVenda) {
       res.status(400).json({
-        erro: `Saldo insuficiente. Saldo atual: R$ ${aluno.saldo.toFixed(2)}, Total: R$ ${totalVenda.toFixed(2)}`,
+        erro: `Saldo insuficiente. Saldo atual: R$ ${aluno.saldo.toFixed(
+          2
+        )}, Total: R$ ${totalVenda.toFixed(2)}`,
       });
       return;
     }
 
-    // Tudo certo — executa as 3 operações em uma única transação atômica:
-    // 1) Cria a venda  2) Debita o saldo do aluno  3) Reduz o estoque
-    const [venda, , ] = await prisma.$transaction([
+    const [venda, ,] = await prisma.$transaction([
       prisma.venda.create({
-        data: { alunoId, produtoId, quant, preco: totalVenda },
+        data: { alunoId, produtoId, usuarioId, quant, preco: totalVenda },
       }),
       prisma.aluno.update({
         where: { id: alunoId },
@@ -111,24 +117,31 @@ router.post("/", async (req, res) => {
       }),
     ]);
 
+    await registrarLog({
+      usuarioId,
+      acao: "venda_criada",
+      descricao: `Venda criada para aluno ${alunoId}, produto ${produtoId}, quantidade ${quant}`,
+      ip: req.ip,
+    });
+
     res.status(201).json({ venda, totalCobrado: totalVenda });
-  } catch (error) {
-    console.error(error);
+  } catch {
     res.status(500).json({ erro: "Erro ao registrar venda" });
   }
 });
 
 router.delete("/:id", async (req, res) => {
   const id = Number(req.params.id);
+
   if (isNaN(id)) {
-    res.status(400).json({ erro: "ID inválido" });
+    res.status(400).json({ erro: "ID invalido" });
     return;
   }
 
   try {
     const venda = await prisma.venda.delete({ where: { id } });
     res.status(200).json(venda);
-  } catch (error) {
+  } catch {
     res.status(500).json({ erro: "Erro ao excluir venda" });
   }
 });

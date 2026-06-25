@@ -6,7 +6,6 @@ import { Prisma } from "@prisma/client";
 
 const router = Router();
 
-//  Tipo completo com includes (TOP)
 type AlunoComExtrato = Prisma.AlunoGetPayload<{
   include: {
     depositos: true;
@@ -16,7 +15,6 @@ type AlunoComExtrato = Prisma.AlunoGetPayload<{
   };
 }>;
 
-// Schema de validação
 const alunoSchema = z.object({
   nome: z.string().min(1).max(80),
   turma: z.string().min(1).max(20),
@@ -25,7 +23,6 @@ const alunoSchema = z.object({
   obs: z.string().max(255).optional(),
 });
 
-// GET /alunos
 router.get("/", async (req: Request, res: Response) => {
   try {
     const alunos = await prisma.aluno.findMany();
@@ -35,7 +32,6 @@ router.get("/", async (req: Request, res: Response) => {
   }
 });
 
-// GET /alunos/:id
 router.get("/:id", async (req: Request, res: Response) => {
   const id = Number(req.params.id);
 
@@ -56,7 +52,6 @@ router.get("/:id", async (req: Request, res: Response) => {
   }
 });
 
-// POST /alunos
 router.post("/", async (req: Request, res: Response) => {
   const valida = alunoSchema.safeParse(req.body);
 
@@ -75,7 +70,6 @@ router.post("/", async (req: Request, res: Response) => {
   }
 });
 
-// PUT /alunos/:id
 router.put("/:id", async (req: Request, res: Response) => {
   const id = Number(req.params.id);
 
@@ -101,7 +95,6 @@ router.put("/:id", async (req: Request, res: Response) => {
   }
 });
 
-// DELETE /alunos/:id
 router.delete("/:id", async (req: Request, res: Response) => {
   const id = Number(req.params.id);
 
@@ -117,7 +110,6 @@ router.delete("/:id", async (req: Request, res: Response) => {
   }
 });
 
-//  GET /alunos/:id/extrato
 router.get("/:id/extrato", async (req: Request, res: Response) => {
   const id = Number(req.params.id);
 
@@ -141,7 +133,6 @@ router.get("/:id/extrato", async (req: Request, res: Response) => {
       return res.status(404).json({ erro: "Aluno não encontrado" });
     }
 
-    // 🔹 Depósitos
     const linhasDepositos = aluno.depositos
       .map(
         (d: any) => `
@@ -153,7 +144,6 @@ router.get("/:id/extrato", async (req: Request, res: Response) => {
       )
       .join("");
 
-    // 🔹 Vendas
     const linhasVendas = aluno.vendas
       .map(
         (v: any) => `
@@ -165,7 +155,6 @@ router.get("/:id/extrato", async (req: Request, res: Response) => {
       )
       .join("");
 
-    // 📄 HTML
     const html = `
       <html>
       <body style="font-family: Arial; padding: 20px;">
@@ -199,8 +188,7 @@ router.get("/:id/extrato", async (req: Request, res: Response) => {
     });
 
     res.status(200).json({ mensagem: "E-mail enviado com sucesso" });
-  } catch (error) {
-    console.error(error);
+  } catch {
     res.status(500).json({ erro: "Erro ao enviar extrato" });
   }
 });

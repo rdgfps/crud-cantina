@@ -1,0 +1,28 @@
+meta {
+  name: 07 Login GERENTE
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/login
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "email": "gerente@cantina.com",
+    "senha": "Gerente@123"
+  }
+}
+
+script:post-response {
+  if (res.body && res.body.token) {
+    bru.setEnvVar("tokenGerente", res.body.token);
+  }
+}
