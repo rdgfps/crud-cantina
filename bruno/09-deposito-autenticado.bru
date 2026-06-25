@@ -1,0 +1,27 @@
+meta {
+  name: 09 Deposito autenticado
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{baseUrl}}/depositos
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenGerente}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "alunoId": 1,
+    "valor": 10,
+    "tipo": "PIX"
+  }
+}

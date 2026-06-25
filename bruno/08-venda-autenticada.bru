@@ -1,0 +1,27 @@
+meta {
+  name: 08 Venda autenticada
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{baseUrl}}/vendas
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenGerente}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "alunoId": 1,
+    "produtoId": 1,
+    "quant": 1
+  }
+}

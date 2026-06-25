@@ -3,3 +3,6 @@ node_modules
 .env.local
 .next
 .vercel
+tsconfig.tsbuildinfo
+tmp_*.json
+cantina_backup.sql

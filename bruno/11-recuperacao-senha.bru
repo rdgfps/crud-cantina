@@ -1,0 +1,21 @@
+meta {
+  name: 11 Recuperacao senha
+  type: http
+  seq: 11
+}
+
+post {
+  url: {{baseUrl}}/esqueci-senha
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "email": "admin@cantina.com"
+  }
+}
